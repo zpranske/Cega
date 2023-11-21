@@ -1,11 +1,7 @@
-% testCega.m
-% script to test Cega filter on sample data
-% Author: PKR, June 2020
-% License: GPL-3.0-or-Later
+addpath('C:\Users\Zachary_Pranske\Documents\GitHub\Cega\MATLAB');
+addpath('C:\Users\Zachary_Pranske\Desktop\Datasets');
 
-%% We'll hard code a path with the sample file for publication!
-% fileLoc = ('path_to_file/filename.tif');
-%% Use a prompt if user has custom data
+%movie = tiffreadVolume('C:\Users\Zachary_Pranske\Desktop\Datasets\2023-05-18 analysis GAD65\CEGA test\Substack (1-100-1).tif');
 [fileName,pathLoc] = uigetfile('.tif','Select a tif stack to analyze','C:\Users\Zachary_Pranske\Desktop\Datasets\2023-05-18 analysis GAD65\CEGA test\');
 fileLoc = fullfile(pathLoc,fileName);
 
@@ -20,26 +16,28 @@ for i=1:NumberImages
 end
 
 %% Set Gain and Offset values, assuming read noise is negligible for exposition
-Gain = 70;
-Offset = 2293;
+Gain = 22.4; %From image metadata
+Offset = 2200;
 %% Use a prompt if user has custom data
 % Gain = inputdlg('What is the Camera gain for this movie? (ADU/e-)');
 % Offset = inputdlg('What is the Camera offset for this movie? (ADU)');
 %% Tansform movie units from ADU to effective photons!
-im = (single(Vector)-Offset)/Gain; % make sure to convert tiffs from uint to single format!
-%% Run CEGA method, return filtered movies
-ConnThresh = 0.5; % Connectivity Threshold
-WinLength = 51; % Median Filter Window Length
-sigmas = [1, 1.5]; % sigmas for scale space filtering
-KLThresh = 0.75; % KL Divergence Threshold for selecting maxima
-[rawCoordinates,filterMovies] = cega( im, ConnThresh, WinLength, sigmas, KLThresh );
-%rawCoordinates = findSpots(im+40,sigmas,8);
-%% Paint coordinates onto the final image to see how identification looks
-x = rawCoordinates(:,1);
-y = rawCoordinates(:,2);
-t = rawCoordinates(:,3);
+movie = (single(Vector)-Offset)/Gain; % make sure to convert tiffs from uint to single format!
 
-imsz = size(im);
+ConnectivityThreshold = .5;
+windowLength = 31;
+sigmas = [1,1.5];
+KLThreshold = 0.05;
+
+[coordinates, filterMovies] = cega( movie, ConnectivityThreshold, ...
+    windowLength, sigmas, KLThreshold);
+
+%% Paint coordinates onto the final image to see how identification looks
+x = coordinates(:,1);
+y = coordinates(:,2);
+t = coordinates(:,3);
+
+imsz = size(movie);
 xLow = x-1;
 xHigh = x+1;
 yLow = y-1;
@@ -52,7 +50,7 @@ yHigh(yHigh>imsz(2)) = imsz(2);
 % for built in implay
 % make an rgb tensor
 %outIm = repmat(filterMovies.KLM,[1 1 1 3]);
-outIm = repmat(im,[1 1 1 3]);
+outIm = repmat(movie,[1 1 1 3]);
 outIm = permute(outIm,[1 2 4 3]);
 outIm = outIm/max(outIm(:))*255; % rescale to 8 bit
 % draw red x's on implay movie
@@ -64,4 +62,3 @@ for ii = 1:length(x)
 end
 % convert to uint8 and run implay
 implay(uint8(outIm));
-

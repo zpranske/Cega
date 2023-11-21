@@ -10,19 +10,19 @@ function [coordinates,filterMovies] = cega( im, ConnThresh, WinLength, sigmas, K
 % License: GPL-3.0-or-later
 
 %% input checks
-if nargin < 2
-    % threshold for connectivity filter
-    ConnThresh = 0.5;
-end
-if nargin < 3
-    WinLength = 31; % 31 frame temporal median filter!
-end
-if nargin < 4
-    sigmas = [1,1.5]; % sigma sizes for scale space LoG filter
-end
-if nargin < 5
-    KLThresh = 0.75;
-end
+% if nargin < 2
+%     % threshold for connectivity filter
+%     ConnThresh = 0.5;
+% end
+% if nargin < 3
+%     WinLength = 31; % 31 frame temporal median filter!
+% end
+% if nargin < 4
+%     sigmas = [1,1.5]; % sigma sizes for scale space LoG filter
+% end
+% if nargin < 5
+%     KLThresh = 0.75;
+% end
 % get filtered movies
 filterMovies = getFilterMovies(im,ConnThresh,WinLength);
 % calculate and output raw coordinates
